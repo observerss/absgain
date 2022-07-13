@@ -6,6 +6,7 @@ import json
 import time
 import os
 import numpy as np
+from datetime import datetime, timedelta
 import sys
 assert sys.platform == 'linux'
 
@@ -86,11 +87,19 @@ def get_fund_k_history(fund_code: str, pz: int = 40000) -> pd.DataFrame:
     return df
 
 
-def get_all_symbols():
+def get_all_symbols(recent_days=14):
     for symbol in open('symbols.txt').read().splitlines():
         symbol = symbol.strip()
         filename = f'symbols/{symbol}.csv'
-        if not os.path.exists(filename):
+        if os.path.exists(filename):
+            last_date = datetime.strptime(open(filename).readlines()[1].split(',')[1], '%Y-%m-%d')
+            recent_date = datetime.now() - timedelta(days=recent_days)
+            print(symbol, last_date, recent_date)
+            if last_date < recent_date:
+                df = get_fund_k_history(symbol)
+                df.to_csv(filename)
+                time.sleep(1)
+        else:
             print('k history', symbol)
             df = get_fund_k_history(symbol)
             df.to_csv(filename)
@@ -105,7 +114,7 @@ def make_dfs(min_hist=500, min_size=1):
     print(dfs.keys())
     symbols = open('symbols.txt').read().split()
     for symbol in symbols:
-        if symbol not in dfs:
+        if (symbol not in dfs) or dfs[symbol] is None:
             print('fund info', symbol)
             try:
                 df = ts.get_fund_info(symbol)
@@ -124,7 +133,8 @@ def make_dfs(min_hist=500, min_size=1):
                     a = np.array(df.涨跌幅.values, dtype=np.float64)
                     sharpe = a.mean() / a.std() * np.sqrt(252)
                     if sharpe < 1:
-                        df = None
+                        # df = None
+                        pass
             dfs[symbol] = df
             time.sleep(1)
             pickle.dump(dfs, open('dfs.pkl', 'wb'))
@@ -143,6 +153,6 @@ def print_small_drawdowns():
 
 
 if __name__ == '__main__':
-    select_symbols()
+    # select_symbols()
     get_all_symbols()
     make_dfs(min_hist=800, min_size=1)
