@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from dataclasses import dataclass
-from typing import List, Dict, Tuple, NewType, Optional
 import heapq
 import json
+from dataclasses import dataclass
+from typing import Dict, List, NewType, Optional, Tuple
 
-from matplotlib.style import available
 from quotes import get_all_symbols
 
 Shares = NewType("Shares", Dict[str, float])
@@ -200,6 +199,7 @@ def plan(shares: Shares, target: Optional[List[str]] = None) -> List[Plan]:
         pdict[symbol] = Record(share=share, nav=nav, amount=amount, symbol=symbol)
 
     target_amount = total_amount / len(target)
+    print("target_amount", target_amount, len(target))
 
     # fund company compare
     rows = json.loads(open("funds.data", "rb").read()[22:-162])
@@ -218,7 +218,7 @@ def plan(shares: Shares, target: Optional[List[str]] = None) -> List[Plan]:
     # 1. rebalance between same fund company
     prefixes1 = set(names[symbol][:2] for symbol in todo_source)
     prefixes2 = set(names[symbol][:2] for symbol in todo_target)
-    for prefix in prefixes1 & prefixes2:
+    for prefix in sorted(prefixes1 & prefixes2):
         symbols1 = []
         symbols2 = []
         for symbol1 in shares:
@@ -234,14 +234,14 @@ def plan(shares: Shares, target: Optional[List[str]] = None) -> List[Plan]:
         plans.extend(sub_plans)
 
     # 2. rebalance inside portfolio
-    symbols = list(todo_source & todo_target)
+    symbols = sorted(todo_source & todo_target)
     done1, done2, sub_plans = sub_plan(pdict, symbols, symbols)
     todo_source -= done1
     todo_target -= done2
     plans.extend(sub_plans)
 
     # 3. rebalance others
-    done1, done2, sub_plans = sub_plan(pdict, list(todo_source), list(todo_target))
+    done1, done2, sub_plans = sub_plan(pdict, sorted(todo_source), sorted(todo_target))
     todo_source -= done1
     todo_target -= done2
     plans.extend(sub_plans)
@@ -267,47 +267,47 @@ def main(shares: Shares, target: Optional[List[str]] = None, imba_threshold=5):
 
 if __name__ == "__main__":
     shares: Shares = {
-        "002084": 49840.88,
-        "001567": 121919.34,
-        "002665": 137077.61,
-        "519761": 108660.60,
-        "001337": 104595.31,
-        "001326": 125424.20,
-        "002091": 109543.46,
-        "005216": 116515.63,
-        "005353": 56385.60,
-        "001510": 51445.00,
-        "004391": 44157.30,
-        "003962": 39889.75,
-        "004236": 44017.21,
-        "002771": 47103.18,
-        "001997": 44695.26,
-        "004235": 30825.62,
-        "001217": 42801.54,
-        "003858": 61383.76,
-        "519771": 62454.02,
-        "003951": 64555.70,
+        "001217": 78479.6,
+        "005216": 184849.14,
+        "004235": 54901.49,
+        "003951": 177285.08,
+        "003858": 116205.54,
+        "004454": 125161.51,
+        "001425": 96515.0,
+        "002658": 136212.24,
+        "003806": 157866.27,
+        "005178": 164242.4,
+        "003851": 170772.15,
+        "002462": 178601.98,
+        "001301": 98152.53,
+        "002079": 92914.42,
+        "001523": 131851.47,
+        "002451": 101062.31,
+        "005353": 88720.35,
+        "004569": 84276.99,
+        "002084": 68756.96,
+        "005050": 75833.3,
     }
     target = [
-        "005050",
-        "001301",
+        "001770",
+        "165527",
+        "002414",
+        "519769",
+        "001338",
+        "003344",
         "002658",
-        "001217",
-        "002084",
-        "002451",
-        "004454",
-        "002079",
-        "003858",
-        "001425",
-        "004569",
-        "005353",
-        "002462",
-        "005216",
-        "003806",
-        "003851",
-        "003951",
-        "001523",
-        "005178",
-        "004235",
+        "003592",
+        "002117",
+        "003503",
+        "002147",
+        "002364",
+        "002091",
+        "004011",
+        "001301",
+        "003187",
+        "160226",
+        "003412",
+        "001510",
+        "001711",
     ]
     main(shares, target)

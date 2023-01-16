@@ -137,7 +137,7 @@ def get_all_symbols(recent_days=14):
             time.sleep(1)
 
 
-def make_dfs(min_hist=500, min_size=1):
+def make_dfs(min_hist=500, min_size=3):
     try:
         dfs = pickle.load(open("dfs.pkl", "rb"))
     except:
@@ -151,7 +151,8 @@ def make_dfs(min_hist=500, min_size=1):
                 df = ts.get_fund_info(symbol)
             except KeyboardInterrupt:
                 break
-            except:
+            except Exception as e:
+                print('error', str(e))
                 continue
             if df.jjgm.values[0] < min_size:
                 df = None
@@ -186,5 +187,5 @@ def print_small_drawdowns():
 
 if __name__ == "__main__":
     # select_symbols()
-    get_all_symbols()
-    make_dfs(min_hist=800, min_size=1)
+    # get_all_symbols()
+    make_dfs(min_hist=800, min_size=3)  # 最少800天交易, 最小3亿规模
